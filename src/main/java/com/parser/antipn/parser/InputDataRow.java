@@ -10,6 +10,4 @@ public class InputDataRow {
     private double sum;
     private String currency;
     private String description;
-
-
 }
