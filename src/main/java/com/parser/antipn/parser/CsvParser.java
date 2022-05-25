@@ -152,6 +152,7 @@ public class CsvParser {
         for (int i = 0; i < inputRows.size(); i++) {
             CsvInputDataRow csvInputDataRow = new CsvInputDataRow(); // data line result
             //System.out.println("Обработка " + i + " строки " + inputRows.get(i));
+            //ВАЛЮТА ТУТ
             InputDataRow inputDataRow = parseRow(inputRows.get(i)); //processing row
             csvInputDataRow.setData(inputDataRow); //adding processed row
             csvInputDataRow.setLine(i + 1); //adding row number

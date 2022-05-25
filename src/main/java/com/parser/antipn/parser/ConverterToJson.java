@@ -18,7 +18,8 @@ public class ConverterToJson {
 
             if (csvInputDataFile.getData().get(i).getData() != null) { //если есть данные и строка обработана
                 outputDataRow.setId(csvInputDataFile.getData().get(i).getData().getId());                   //orderId
-                outputDataRow.setAmount(csvInputDataFile.getData().get(i).getData().getSum());              //amount
+                outputDataRow.setAmount(csvInputDataFile.getData().get(i).getData().getSum());               //amount
+                outputDataRow.setCurrency(csvInputDataFile.getData().get(i).getData().getCurrency());       // currency
                 outputDataRow.setComment(csvInputDataFile.getData().get(i).getData().getDescription());     //comment
                 outputDataRow.setFileName(csvInputDataFile.getFileName());                                  //filename
                 outputDataRow.setLine(csvInputDataFile.getData().get(i).getLine());                         //line
