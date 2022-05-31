@@ -1,18 +1,22 @@
-package com.parser.antipn.parser;
+package com.parser.antipn.parser.csv;
 
+import com.parser.antipn.parser.exception.ErrorRowCatcher;
+import com.parser.antipn.parser.iodata.InputDataRow;
+import com.parser.antipn.parser.iodata.OutputDataRow;
+
+import javax.xml.bind.SchemaOutputResolver;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class CsvParser {
-    private static String errorString = "";
-
     public static void main(String[] args) throws Exception {
-        //тестирование входящих
         List<String> testInputStrings = new ArrayList<>();
 
         String testOK = "1,100,USD,оплата заказа";
@@ -34,15 +38,14 @@ public class CsvParser {
         testInputStrings.add(testOK7);
 
         CsvParser test = new CsvParser(); //test variable
-
-        System.out.println("! Testing individual rows");
-        for (int i = 0; i < testInputStrings.size(); i++) {
-            if (test.parseRow(testInputStrings.get(i)) == null) {
-                System.out.println(i + " test is not passed for " + testInputStrings.get(i));
-            } else {
-                System.out.println(i + " test is passed for " + testInputStrings.get(i));
-            }
-        }
+//        System.out.println("! Testing individual rows");
+//        for (int i = 0; i < testInputStrings.size(); i++) {
+//            if (test.parseRow(testInputStrings.get(i)) == null) {
+//                System.out.println(i + " test is not passed for " + testInputStrings.get(i));
+//            } else {
+//                System.out.println(i + " test is passed for " + testInputStrings.get(i));
+//            }
+//        }
 
 
         System.out.println("! Testing list of input rows");
@@ -69,7 +72,7 @@ public class CsvParser {
         }
 
         System.out.println("! parseCsv -> CsvInputDataFile");
-        for (CsvInputDataRow csvInputDataRow: test.parseCsv("src//main//resources//input_files//input_data.txt").getData() ) {
+        for (CsvInputDataRow csvInputDataRow : test.parseCsv("src//main//resources//input_files//input_data.txt").getData()) {
             System.out.println(csvInputDataRow);
         }
 
@@ -85,60 +88,35 @@ public class CsvParser {
         for (OutputDataRow output : converterToJson.convert(csvFile)) {
             System.out.println(converterToJson.convertToJson(output));
         }
-
-
-
     }
 
-    // parsing one row -> InputDataRow
-    public InputDataRow parseRow(String inputRow) throws Exception {
+    public InputDataRow parseRow(String inputRow) {// parsing one row -> InputDataRow
         InputDataRow inputDataRow = new InputDataRow();
         if (inputRow == null) {
-            System.out.println("Input row is null");
-            return null;
+            //System.out.println("Input row is null");
+            throw new ErrorRowCatcher("Input row is null");
         }
-        try {
-            String[] splitedRow = inputRow.split(",");
-            //checking length of parameters
-            for (int i = 0; i < splitedRow.length; i++) {
-                if (splitedRow[i].length() == 0) {
-                    errorString = "Empty data in row: " + inputRow + " , on position = " + (i + 1);
-                    //System.out.println("Empty data in row: " + inputRow + " , on position = " + (i + 1));
-                    System.out.println(errorString);
-                    return null;
-                }
+        String[] splitedRow = inputRow.split(",");
+        for (int i = 0; i < splitedRow.length; i++) {  //checking length of parameters
+            if (splitedRow[i].length() == 0) {
+                throw new ErrorRowCatcher("Empty " + (i + 1) + " parameter of row");
             }
-            //checking count of parameters
-            if (splitedRow.length != 4) {
-                System.out.println();
-                errorString = "Input row has incorrect format, are required 4, you have " + splitedRow.length;
-                System.out.println(errorString);
-
-                return null;
-            }
-            //setting data to output format
+        }
+        if (splitedRow.length != 4) { //checking count of parameters
+            throw new ErrorRowCatcher("Incorrect row format");
+        }
+        try {//setting data to output format
             inputDataRow.setId(Integer.parseInt(splitedRow[0])); //id
             inputDataRow.setSum(Double.parseDouble(splitedRow[1])); //sum
             inputDataRow.setCurrency(splitedRow[2]); //currency
             inputDataRow.setDescription(splitedRow[3]); //description
             return inputDataRow;
-        } catch (NumberFormatException e) {
-            System.out.println(e);
-            //errorString = e.getMessage();
-            errorString = e.toString();
-            //System.out.println("Part of data can't be converted to number");
-            return null;
         } catch (Exception e) {
-            System.out.println(e);
-            //errorString = e.getMessage();
-            errorString = e.toString();
-            //System.out.println("Something went wrong...");
-            return null;
+            throw new ErrorRowCatcher(e.getMessage()); //сам текст ошибки
         }
     }
 
-    //processing list of rows -> list of CsvInputDataRow
-    public List<CsvInputDataRow> parseRows(List<String> inputRows) throws Exception {
+    public List<CsvInputDataRow> parseRows(List<String> inputRows) {//processing list of rows -> list of CsvInputDataRow
         // standard checking
         if (inputRows == null) {
             System.out.println("Input list is null");
@@ -149,48 +127,39 @@ public class CsvParser {
             return null;
         }
         List<CsvInputDataRow> result = new ArrayList<>();
+
         for (int i = 0; i < inputRows.size(); i++) {
             CsvInputDataRow csvInputDataRow = new CsvInputDataRow(); // data line result
             //System.out.println("Обработка " + i + " строки " + inputRows.get(i));
-            //ВАЛЮТА ТУТ
-            InputDataRow inputDataRow = parseRow(inputRows.get(i)); //processing row
-            csvInputDataRow.setData(inputDataRow); //adding processed row
-            csvInputDataRow.setLine(i + 1); //adding row number
-            if (inputDataRow != null) { //if succeed parsing -> OK
-                csvInputDataRow.setResult("OK");
-            } else { //if parsing tailed -> errorString
-                csvInputDataRow.setResult(errorString); // I hope that is accessible
+            try {
+                InputDataRow inputDataRow = parseRow(inputRows.get(i)); //processing row
+                csvInputDataRow.setData(inputDataRow); //adding processed row
+                csvInputDataRow.setLine(i + 1); //adding row number
+                if (inputDataRow != null) { //if succeed parsing -> OK
+                    csvInputDataRow.setResult("OK");
+                }
+            } catch (ErrorRowCatcher e) { //if parsing failed
+                System.out.println(e.getMessage());
+                csvInputDataRow.setData(null);
+                csvInputDataRow.setLine(i + 1);
+                csvInputDataRow.setResult(e.getMessage());
             }
-            //csvInputDataRow is ready to be kept
-            //System.out.println("Результат обработки " + inputDataRow);
             result.add(csvInputDataRow);
         }
-        //return resultList;
         return result;
     }
 
-    //reading file and creating list with rows
+    //reading file and putting rows in list
     public List<String> readFile(String path) {
-        File file;
-        List<String> resultList = new ArrayList<>();
-        if (!((file = new File(path)).canRead())) { //файл не существует и не может быть прочитан
-            System.out.println("File doesnt exist and can not be read");
-            return null;
-        }
-        try {
-            //System.out.println("!!!!!!!!!!!");
-            BufferedReader fileReader = new BufferedReader(new FileReader(file));
-            //не работает    String[] fileRows = file.list();
-            String fileRow;
-
-            while ((fileRow = fileReader.readLine()) != null) {
-                resultList.add(fileRow);
+        Path pathFile = Paths.get(path);
+        boolean exists = Files.exists(pathFile);
+        if (exists == true) {
+            try {
+                return Files.readAllLines(pathFile);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                System.out.println("There is problem with file " + pathFile.getFileName());
             }
-            //System.out.println("Размер списка со строками " + resultList.size());
-            return resultList;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            System.out.println("There is problem with file " + file.getName());
         }
         return null;
     }
@@ -198,15 +167,13 @@ public class CsvParser {
     // parsing csv: fileName - > CsVInputDataFile
     public CsvInputDataFile parseCsv(String fileName) {
         CsvInputDataFile csvInputDataFile = new CsvInputDataFile();
-
         try {
             csvInputDataFile.setData(parseRows(readFile(fileName)));
             csvInputDataFile.setFileName(fileName);
             return csvInputDataFile;
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        return null; //если не получилось
+        return null;
     }
 }
