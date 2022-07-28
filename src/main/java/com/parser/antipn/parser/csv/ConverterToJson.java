@@ -1,10 +1,14 @@
 package com.parser.antipn.parser.csv;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parser.antipn.parser.iodata.OutputDataRow;
 
 import java.util.ArrayList;
 import java.util.List;
 
+//класс формирование выходных данных в JSON формате
 public class ConverterToJson {
 
     //output format
@@ -14,10 +18,20 @@ public class ConverterToJson {
         for (CsvInputDataRow input : csvInputDataFile.getData()) {
             OutputDataRow outputDataRow = new OutputDataRow();
             if (input.getData() != null) {
-                outputDataRow.setId(input.getData().getId());                   //orderId
+                outputDataRow.setOrderId(input.getData().getId());              //orderId
                 outputDataRow.setAmount(input.getData().getSum());              //amount
                 outputDataRow.setCurrency(input.getData().getCurrency());       //currency
                 outputDataRow.setComment(input.getData().getDescription());     //comment
+                outputDataRow.setFileName(csvInputDataFile.getFileName());      //filename
+                outputDataRow.setLine(input.getLine());                         //line
+                outputDataRow.setResult(input.getResult());                     //result
+                outputDataRows.add(outputDataRow);
+            } else {
+                //для вывода неправильных строк, в задании не сказано в каком формате точно выводить часть данных заменено на -1 и null
+                outputDataRow.setOrderId(-1);              //orderId
+                outputDataRow.setAmount(-1);              //amount
+                outputDataRow.setCurrency(null);       //currency
+                outputDataRow.setComment(null);     //comment
                 outputDataRow.setFileName(csvInputDataFile.getFileName());      //filename
                 outputDataRow.setLine(input.getLine());                         //line
                 outputDataRow.setResult(input.getResult());                     //result
@@ -28,19 +42,26 @@ public class ConverterToJson {
         return outputDataRows;
     }
 
-    public String convertToJson(OutputDataRow outputDataRow) {
+    public String manualConvertToJson(OutputDataRow outputDataRow) {
 
-        int id = outputDataRow.getId();
-        int orderId = outputDataRow.getId();
+        int id = outputDataRow.getOrderId();
+        int orderId = outputDataRow.getOrderId();
         double amount = outputDataRow.getAmount();
         String comment = outputDataRow.getComment();
         String fileName = outputDataRow.getFileName();
         int line = outputDataRow.getLine();
         String result = outputDataRow.getResult();
 
-        String outputString = String.format("{\"id\":\"%d\",\"orderId\":\"%d\",\"amount\":\"%.2f\",\"comment\":\"%s\",\"filename\":\"%s\",\"line\":\"%d\",\"result\":\"%s\"}", id, orderId, amount, comment, fileName, line, result);
+        String outputString = String.format("{\"id\":%d,\"orderId\":%d,\"amount\":%.2f,\"comment\":\"%s\",\"filename\":\"%s\",\"line\":%d,\"result\":\"%s\"}", id, orderId, amount, comment, fileName, line, result);
 
 
         return outputString;
+    }
+
+    public String autoConverterToJSON(OutputDataRow outputDataRow) throws JsonProcessingException {
+
+        String jsonResult = new ObjectMapper().writeValueAsString(outputDataRow);
+
+        return jsonResult;
     }
 }
