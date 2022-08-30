@@ -3,13 +3,14 @@ package com.parser.antipn.parser.csv;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.parser.antipn.parser.OutputConverter;
 import com.parser.antipn.parser.iodata.OutputDataRow;
 
 import java.util.ArrayList;
 import java.util.List;
 
 //класс формирование выходных данных в JSON формате
-public class ConverterToJson {
+public class ConverterToJson implements OutputConverter {
 
     //output format
     //{“id”:1,“orderId”:1,”amount”:100,”comment”:”оплата заказа”,”filename”:”orders.csv”,”line”:1,”result”:”OK”}
@@ -28,10 +29,10 @@ public class ConverterToJson {
                 outputDataRows.add(outputDataRow);
             } else {
                 //для вывода неправильных строк, в задании не сказано в каком формате точно выводить часть данных заменено на -1 и null
-                outputDataRow.setOrderId(-1);              //orderId
-                outputDataRow.setAmount(-1);              //amount
-                outputDataRow.setCurrency(null);       //currency
-                outputDataRow.setComment(null);     //comment
+                outputDataRow.setOrderId(null);                                 //orderId
+                outputDataRow.setAmount(null);                                  //amount
+                outputDataRow.setCurrency(null);                                //currency
+                outputDataRow.setComment(null);                                 //comment
                 outputDataRow.setFileName(csvInputDataFile.getFileName());      //filename
                 outputDataRow.setLine(input.getLine());                         //line
                 outputDataRow.setResult(input.getResult());                     //result
@@ -63,5 +64,12 @@ public class ConverterToJson {
         String jsonResult = new ObjectMapper().writeValueAsString(outputDataRow);
 
         return jsonResult;
+    }
+
+
+    @Override
+    public String convert(OutputDataRow outputDataRow) throws JsonProcessingException {
+
+        return new ObjectMapper().writeValueAsString(outputDataRow);
     }
 }

@@ -1,5 +1,6 @@
 package com.parser.antipn.parser.csv;
 
+import com.parser.antipn.parser.OrderParser;
 import com.parser.antipn.parser.exception.ErrorRowCatcher;
 import com.parser.antipn.parser.iodata.InputDataRow;
 import com.parser.antipn.parser.iodata.OutputDataRow;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 //основной класс обработки непосредственно самих строк из файлов
-public class CsvParser {
+public class CsvParser implements OrderParser {
     public static void main(String[] args) throws Exception {
 
     }
@@ -46,16 +47,16 @@ public class CsvParser {
 
     public List<CsvInputDataRow> parseRows(List<String> inputRows) {//processing list of rows -> list of CsvInputDataRow
 
-        // standard checking
-        if (inputRows == null) { // Спросить Сашу нужно ли тут кидать исключение
-            System.out.println("Input list is null");
-            return null;
-        }
-        if (inputRows.isEmpty()) { // Спросить Сашу нужно ли тут кидать исключение
-            System.out.println("Input list is empty");
-            return null;
-        }
         List<CsvInputDataRow> result = new ArrayList<>();
+        // standard checking
+        if (inputRows == null) {
+            System.out.println("Input list is null");
+            return result;
+        }
+        if (inputRows.isEmpty()) {
+            System.out.println("Input list is empty");
+            return result;
+        }
 
         for (int i = 0; i < inputRows.size(); i++) {
             CsvInputDataRow csvInputDataRow = new CsvInputDataRow(); // data line result
@@ -101,5 +102,40 @@ public class CsvParser {
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    //!!! ОТТЕСТИРОВАТЬ !!!
+    public List<OutputDataRow> parse(String pathFile) {
+        List<OutputDataRow> outputDataRows = new ArrayList<>();
+        //выходные данные {"id","orderId","amount","comment","filename","line","result"}
+        //входные данные путь до файла
+        // ым должны имея путь до файла сформировать список строк для формирования в последедующем
+        //в JSON формат
+
+        for (CsvInputDataRow input : parseCsv(pathFile).getData()) {
+            OutputDataRow outputDataRow = new OutputDataRow();
+            if (input.getData() != null) {
+                outputDataRow.setOrderId(input.getData().getId());              //orderId
+                outputDataRow.setAmount(input.getData().getSum());              //amount
+                outputDataRow.setCurrency(input.getData().getCurrency());       //currency
+                outputDataRow.setComment(input.getData().getDescription());     //comment
+                outputDataRow.setFileName(parseCsv(pathFile).getFileName());     //filename
+                outputDataRow.setLine(input.getLine());                         //line
+                outputDataRow.setResult(input.getResult());                     //result
+                outputDataRows.add(outputDataRow);
+            } else {
+                //для вывода неправильных строк, в задании не сказано в каком формате точно выводить часть данных заменено на -1 и null
+                outputDataRow.setOrderId(null);                                 //orderId
+                outputDataRow.setAmount(null);                                  //amount
+                outputDataRow.setCurrency(null);                                //currency
+                outputDataRow.setComment(null);                                 //comment
+                outputDataRow.setFileName(parseCsv(pathFile).getFileName());      //filename
+                outputDataRow.setLine(input.getLine());                         //line
+                outputDataRow.setResult(input.getResult());                     //result
+                outputDataRows.add(outputDataRow);
+            }
+        }
+        return outputDataRows;
     }
 }

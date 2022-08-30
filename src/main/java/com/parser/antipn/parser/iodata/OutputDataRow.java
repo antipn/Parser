@@ -1,10 +1,8 @@
 package com.parser.antipn.parser.iodata;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
 @Data
@@ -13,15 +11,15 @@ import lombok.Data;
 @JsonPropertyOrder({"id","orderId","amount","comment","filename","line","result"})
 public class OutputDataRow {
 
-    private int Id;
-    private int orderId;
-    private double amount;
+    private Integer Id;
+    private Integer orderId;
+    private Double amount;
     @JsonIgnore
     private String currency;
     private String comment;
     @JsonProperty("filename")
     private String fileName;
-    private int line;
+    private Integer line;
     private String result;
 
 }
