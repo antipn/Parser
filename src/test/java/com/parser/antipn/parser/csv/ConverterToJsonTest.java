@@ -1,9 +1,9 @@
 package com.parser.antipn.parser.csv;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.parser.antipn.parser.iodata.OutputDataRow;
+import com.parser.antipn.parser.ConverterToJson;
+import com.parser.antipn.parser.models.OutputDataRow;
 import org.json.JSONException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 

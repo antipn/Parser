@@ -1,7 +1,6 @@
-package com.parser.antipn.parser.csv;
+package com.parser.antipn.parser.models;
 
 
-import com.parser.antipn.parser.iodata.InputDataRow;
 import lombok.Data;
 
 @Data

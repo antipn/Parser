@@ -1,4 +1,4 @@
-package com.parser.antipn.parser.csv;
+package com.parser.antipn.parser.models;
 
 import lombok.Data;
 

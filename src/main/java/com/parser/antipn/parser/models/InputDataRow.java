@@ -1,4 +1,4 @@
-package com.parser.antipn.parser.iodata;
+package com.parser.antipn.parser.models;
 
 
 import lombok.Data;

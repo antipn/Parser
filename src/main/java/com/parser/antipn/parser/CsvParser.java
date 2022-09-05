@@ -1,9 +1,12 @@
-package com.parser.antipn.parser.csv;
+package com.parser.antipn.parser;
 
-import com.parser.antipn.parser.OrderParser;
 import com.parser.antipn.parser.exception.ErrorRowCatcher;
-import com.parser.antipn.parser.iodata.InputDataRow;
-import com.parser.antipn.parser.iodata.OutputDataRow;
+import com.parser.antipn.parser.models.CsvInputDataFile;
+import com.parser.antipn.parser.models.CsvInputDataRow;
+import com.parser.antipn.parser.models.InputDataRow;
+import com.parser.antipn.parser.models.OutputDataRow;
+import com.parser.antipn.parser.readers.DataCsvSupplier;
+import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,10 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 //основной класс обработки непосредственно самих строк из файлов
+@Component
 public class CsvParser implements OrderParser {
-    public static void main(String[] args) throws Exception {
-
-    }
 
     public InputDataRow parseRow(String inputRow) {// parsing one row -> InputDataRow
         InputDataRow inputDataRow = new InputDataRow();
@@ -25,11 +26,11 @@ public class CsvParser implements OrderParser {
         String[] splitedRow = inputRow.split(",");
         for (int i = 0; i < splitedRow.length; i++) {  //checking length of parameters
             if (splitedRow[i].length() == 0) {
-                throw new ErrorRowCatcher("Empty " + (i + 1) + " parameter of row");
+                throw new ErrorRowCatcher("Blank " + (i + 1) + "st/th parameter of input row");
             }
         }
         if (splitedRow.length != 4) { //checking count of parameters
-            throw new ErrorRowCatcher("Incorrect row format");
+            throw new ErrorRowCatcher("Incorrect row format: inputted parameters less than 4");
         }
         try {//setting data to output format
             inputDataRow.setId(Integer.parseInt(splitedRow[0])); //id
@@ -68,7 +69,7 @@ public class CsvParser implements OrderParser {
                     csvInputDataRow.setResult("OK");
                 }
             } catch (ErrorRowCatcher e) { //if parsing failed
-                System.out.println(e.getMessage());
+                //System.out.println(e.getMessage());
                 csvInputDataRow.setData(null);// wrong row will be replaced by null but we need add wrong row for future output with NOK status
                 csvInputDataRow.setLine(i + 1);
                 csvInputDataRow.setResult("NOK " + e.getMessage());
@@ -78,25 +79,25 @@ public class CsvParser implements OrderParser {
         return result;
     }
 
-    public List<String> readFile(String path) {//reading file and putting rows in list
-        Path pathFile = Paths.get(path);
-        boolean exists = Files.exists(pathFile);
-        if (exists == true) {
-            try {
-                return Files.readAllLines(pathFile);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                System.out.println("There is problem with file " + pathFile.getFileName());
-            }
-        }
-        return null;
-    }
+//    public List<String> readFile(String path) {//reading file and putting rows in list
+//        Path pathFile = Paths.get(path);
+//        boolean exists = Files.exists(pathFile);
+//        if (exists == true) {
+//            try {
+//                return Files.readAllLines(pathFile);
+//            } catch (Exception e) {
+//                System.out.println(e.getMessage());
+//                System.out.println("There is problem with file " + pathFile.getFileName());
+//            }
+//        }
+//        return null;
+//    }
 
-    public CsvInputDataFile parseCsv(String fileName) {    // parsing csv: fileName - > CsVInputDataFile
+    public CsvInputDataFile parseCsv(DataCsvSupplier supplier) {    // parsing csv: fileName - > CsVInputDataFile
         CsvInputDataFile csvInputDataFile = new CsvInputDataFile();
         try {
-            csvInputDataFile.setData(parseRows(readFile(fileName)));
-            csvInputDataFile.setFileName(fileName);
+            csvInputDataFile.setData(parseRows(supplier.getLines()));
+            csvInputDataFile.setFileName(supplier.getFilename());
             return csvInputDataFile;
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -106,21 +107,22 @@ public class CsvParser implements OrderParser {
 
     @Override
     //!!! ОТТЕСТИРОВАТЬ !!!
-    public List<OutputDataRow> parse(String pathFile) {
+    public List<OutputDataRow> parse(DataCsvSupplier supplier) {
         List<OutputDataRow> outputDataRows = new ArrayList<>();
         //выходные данные {"id","orderId","amount","comment","filename","line","result"}
         //входные данные путь до файла
         // ым должны имея путь до файла сформировать список строк для формирования в последедующем
         //в JSON формат
 
-        for (CsvInputDataRow input : parseCsv(pathFile).getData()) {
+        for (CsvInputDataRow input : parseCsv(supplier).getData()) {
             OutputDataRow outputDataRow = new OutputDataRow();
+            System.out.println("Обработка очередной строки = " + input.toString());
             if (input.getData() != null) {
                 outputDataRow.setOrderId(input.getData().getId());              //orderId
                 outputDataRow.setAmount(input.getData().getSum());              //amount
                 outputDataRow.setCurrency(input.getData().getCurrency());       //currency
                 outputDataRow.setComment(input.getData().getDescription());     //comment
-                outputDataRow.setFileName(parseCsv(pathFile).getFileName());     //filename
+                outputDataRow.setFileName(parseCsv(supplier).getFileName());     //filename
                 outputDataRow.setLine(input.getLine());                         //line
                 outputDataRow.setResult(input.getResult());                     //result
                 outputDataRows.add(outputDataRow);
@@ -130,7 +132,7 @@ public class CsvParser implements OrderParser {
                 outputDataRow.setAmount(null);                                  //amount
                 outputDataRow.setCurrency(null);                                //currency
                 outputDataRow.setComment(null);                                 //comment
-                outputDataRow.setFileName(parseCsv(pathFile).getFileName());      //filename
+                outputDataRow.setFileName(parseCsv(supplier).getFileName());      //filename
                 outputDataRow.setLine(input.getLine());                         //line
                 outputDataRow.setResult(input.getResult());                     //result
                 outputDataRows.add(outputDataRow);

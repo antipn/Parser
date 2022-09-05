@@ -1,15 +1,17 @@
-package com.parser.antipn.parser.csv;
+package com.parser.antipn.parser;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.parser.antipn.parser.OutputConverter;
-import com.parser.antipn.parser.iodata.OutputDataRow;
+import com.parser.antipn.parser.models.CsvInputDataFile;
+import com.parser.antipn.parser.models.CsvInputDataRow;
+import com.parser.antipn.parser.models.OutputDataRow;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 //класс формирование выходных данных в JSON формате
+@Component
 public class ConverterToJson implements OutputConverter {
 
     //output format
@@ -66,10 +68,8 @@ public class ConverterToJson implements OutputConverter {
         return jsonResult;
     }
 
-
     @Override
     public String convert(OutputDataRow outputDataRow) throws JsonProcessingException {
-
         return new ObjectMapper().writeValueAsString(outputDataRow);
     }
 }

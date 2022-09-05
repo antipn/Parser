@@ -1,4 +1,4 @@
-package com.parser.antipn.parser.iodata;
+package com.parser.antipn.parser.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

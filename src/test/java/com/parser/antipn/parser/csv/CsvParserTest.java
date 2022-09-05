@@ -1,11 +1,11 @@
 package com.parser.antipn.parser.csv;
 
+import com.parser.antipn.parser.CsvParser;
 import com.parser.antipn.parser.exception.ErrorRowCatcher;
-import com.parser.antipn.parser.iodata.InputDataRow;
+import com.parser.antipn.parser.models.InputDataRow;
 import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
